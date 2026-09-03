@@ -1,0 +1,48 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-display: "Cairo", sans-serif;
+  --font-body: "IBM Plex Sans Arabic", sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+  color: #14122e;
+  background-color: #fbf9f4;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+}
+
+/* Visible keyboard focus everywhere, not just on inputs the browser deems important */
+:focus-visible {
+  outline: 2px solid #ef6c03;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Slim, brand-tinted scrollbar for the admin table */
+.styled-scroll::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+.styled-scroll::-webkit-scrollbar-thumb {
+  background-color: #d8d2c2;
+  border-radius: 999px;
+}
