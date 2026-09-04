@@ -185,15 +185,19 @@ function ApplicantDetail() {
             <dl>
               <Row label="ماذا يمكنه أن يقدّم لطموح">{applicant.contribution}</Row>
               <Row label="رابط الأعمال والتجارب">
-                <a
-                  href={applicant.portfolio_link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-flame-600 hover:underline"
-                >
-                  <LinkIcon className="h-3.5 w-3.5" />
-                  {applicant.portfolio_link}
-                </a>
+                {applicant.portfolio_link ? (
+                  <a
+                    href={applicant.portfolio_link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-flame-600 hover:underline"
+                  >
+                    <LinkIcon className="h-3.5 w-3.5" />
+                    {applicant.portfolio_link}
+                  </a>
+                ) : (
+                  "—"
+                )}
               </Row>
               <Row label="لماذا يريد الانضمام">{applicant.motivation}</Row>
             </dl>

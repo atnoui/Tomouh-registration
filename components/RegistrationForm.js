@@ -78,7 +78,6 @@ export default function RegistrationForm() {
     }
     if (current === 1) {
       if (!data.contribution.trim()) next.contribution = "هذا الحقل مطلوب";
-      if (!data.portfolio_link.trim()) next.portfolio_link = "الرجاء إرفاق رابط";
       if (!data.field_of_study.trim()) next.field_of_study = "هذا الحقل مطلوب";
       if (!data.motivation.trim()) next.motivation = "هذا الحقل مطلوب";
     }
@@ -113,7 +112,7 @@ export default function RegistrationForm() {
         phone: data.phone.trim() || null,
         wilaya: data.wilaya,
         contribution: data.contribution.trim(),
-        portfolio_link: data.portfolio_link.trim(),
+        portfolio_link: data.portfolio_link.trim() || null,
         field_of_study: data.field_of_study.trim(),
         motivation: data.motivation.trim(),
         weekly_hours: data.weekly_hours,
@@ -248,7 +247,7 @@ export default function RegistrationForm() {
             </Field>
             <Field
               label="رابط أعمالك وتجاربك"
-              hint="Drive, GitHub, Figma, Canva..."
+              hint="اختياري — Drive, GitHub, Figma, Canva..."
               error={errors.portfolio_link}
             >
               <input
