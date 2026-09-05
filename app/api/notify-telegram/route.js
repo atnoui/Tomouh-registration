@@ -59,7 +59,10 @@ export async function POST(request) {
   if (!telegramRes.ok) {
     const errBody = await telegramRes.text();
     console.error("Telegram API error:", errBody);
-    return NextResponse.json({ error: "Telegram send failed" }, { status: 502 });
+    return NextResponse.json(
+      { error: "Telegram send failed", details: errBody },
+      { status: 502 }
+    );
   }
 
   return NextResponse.json({ ok: true });
