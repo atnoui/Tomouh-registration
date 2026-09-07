@@ -31,36 +31,109 @@ export async function POST(request) {
 
   const siteUrl = process.env.SITE_URL || "";
   const logoUrl = `${siteUrl}/logo.png`;
+  const firstName = applicant.full_name || "صديقنا";
 
-  const groupButtons = links
+  const groupButtonRows = links
     .map(
-      (link) =>
-        `<a href="${link}" style="display:inline-block;margin:6px 6px 0 0;padding:12px 24px;background:#EF6C03;color:#ffffff;text-decoration:none;border-radius:999px;font-weight:bold;font-size:14px;">انضم إلى المجموعة</a>`
+      (link) => `
+        <tr>
+          <td align="center" style="padding:0 0 12px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td style="border-radius:999px;background-color:#EF6C03;">
+                  <a href="${link}" target="_blank"
+                     style="display:inline-block;padding:14px 32px;color:#ffffff;
+                            text-decoration:none;font-weight:bold;font-size:15px;
+                            font-family:Tahoma,Arial,sans-serif;">
+                    انضم إلى المجموعة
+                  </a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>`
     )
     .join("");
 
-  const html = `
-  <div dir="rtl" style="font-family:Tahoma,Arial,sans-serif;background:#FBF9F4;padding:32px 16px;">
-    <div style="max-width:480px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #eeeeee;">
-      <div style="background:#17148C;padding:28px;text-align:center;">
-        <img src="${logoUrl}" alt="طموح" width="56" height="56" style="border-radius:12px;display:inline-block;" />
-      </div>
-      <div style="padding:28px;">
-        <h2 style="color:#14122E;margin:0 0 14px;font-size:22px;">
-          مبروك يا ${applicant.full_name || "صديقنا"}! 🎉
-        </h2>
-        <p style="color:#333333;line-height:1.8;margin:0 0 16px;font-size:15px;">
-          يسعدنا إعلامك بأنه تم قبولك ضمن فريق طموح. نحن متحمسون للعمل معك
-          وترك أثر حقيقي سوياً.
-        </p>
-        <p style="color:#333333;line-height:1.8;margin:0 0 18px;font-size:15px;">
-          الخطوة التالية: انضم إلى مجموعة فريقك على تيليجرام من هنا 👇
-        </p>
-        <div>${groupButtons}</div>
-        <p style="color:#999999;font-size:13px;margin-top:28px;">فريق طموح</p>
-      </div>
-    </div>
-  </div>`;
+  const html = `<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>تم قبولك في فريق طموح</title>
+</head>
+<body style="margin:0;padding:0;background-color:#FBF9F4;">
+  <!-- Preheader: hidden preview text shown next to the subject in the inbox -->
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0;">
+    تم قبولك ضمن فريق طموح — انضم الآن إلى مجموعة فريقك على تيليجرام.
+  </div>
+
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#FBF9F4;">
+    <tr>
+      <td align="center" style="padding:32px 16px;">
+        <table role="presentation" width="480" cellpadding="0" cellspacing="0"
+               style="max-width:480px;width:100%;background-color:#ffffff;border-radius:16px;
+                      overflow:hidden;border:1px solid #eeeeee;">
+          <!-- Header / logo -->
+          <tr>
+            <td align="center" style="background-color:#17148C;padding:32px;">
+              <img src="${logoUrl}" width="64" height="64" alt="طموح"
+                   style="display:block;border-radius:14px;border:0;outline:none;" />
+            </td>
+          </tr>
+          <!-- Body -->
+          <tr>
+            <td style="padding:32px 28px 8px;text-align:right;direction:rtl;">
+              <h1 style="margin:0 0 16px;color:#14122E;font-size:23px;line-height:1.4;
+                         font-family:Tahoma,Arial,sans-serif;">
+                مبروك يا ${firstName}! 🎉
+              </h1>
+              <p style="margin:0 0 16px;color:#333333;font-size:15px;line-height:1.8;
+                        font-family:Tahoma,Arial,sans-serif;">
+                يسعدنا إعلامك بأنه تم قبولك ضمن فريق طموح. نحن متحمسون للعمل معك
+                وترك أثر حقيقي سوياً.
+              </p>
+              <p style="margin:0 0 24px;color:#333333;font-size:15px;line-height:1.8;
+                        font-family:Tahoma,Arial,sans-serif;">
+                الخطوة التالية: انضم إلى مجموعة فريقك على تيليجرام من الزر أدناه.
+              </p>
+            </td>
+          </tr>
+          <!-- Buttons -->
+          <tr>
+            <td style="padding:0 28px 8px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                ${groupButtonRows}
+              </table>
+            </td>
+          </tr>
+          <!-- Footer -->
+          <tr>
+            <td style="padding:16px 28px 32px;text-align:right;direction:rtl;">
+              <p style="margin:0;color:#999999;font-size:13px;
+                        font-family:Tahoma,Arial,sans-serif;">
+                فريق طموح
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+
+  const groupUrlsPlain = links.length ? links.join("\n") : "—";
+  const text = [
+    `مبروك يا ${applicant.full_name || "صديقنا"}!`,
+    "",
+    "يسعدنا إعلامك بأنه تم قبولك ضمن فريق طموح. نحن متحمسون للعمل معك وترك أثر حقيقي سوياً.",
+    "",
+    "انضم إلى مجموعة فريقك على تيليجرام من الرابط/الروابط التالية:",
+    groupUrlsPlain,
+    "",
+    "فريق طموح",
+  ].join("\n");
 
   const transporter = nodemailer.createTransport({
     service: "gmail",
@@ -73,8 +146,10 @@ export async function POST(request) {
   try {
     await transporter.sendMail({
       from: `"طموح" <${process.env.GMAIL_USER}>`,
+      replyTo: process.env.GMAIL_USER,
       to: applicant.email,
       subject: "تم قبولك في فريق طموح 🎉",
+      text,
       html,
     });
   } catch (err) {
@@ -85,5 +160,5 @@ export async function POST(request) {
     );
   }
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, source: "notify-accepted" });
 }
