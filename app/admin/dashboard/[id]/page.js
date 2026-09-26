@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowRight, Loader2, Link as LinkIcon } from "lucide-react";
+import { ArrowRight, Loader2, Link as LinkIcon, Trash2, Check } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 import {
   departmentLabel,
+  DEPARTMENTS,
   STATUS_OPTIONS,
   WEEKLY_HOURS_OPTIONS,
 } from "@/lib/constants";
@@ -33,6 +34,10 @@ function ApplicantDetail() {
   const [applicant, setApplicant] = useState(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
+  const [selectedDepartments, setSelectedDepartments] = useState([]);
+  const [savingDepartments, setSavingDepartments] = useState(false);
+  const [departmentsSaved, setDepartmentsSaved] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -44,6 +49,13 @@ function ApplicantDetail() {
         .single();
       if (active) {
         setApplicant(data);
+        if (data) {
+          setSelectedDepartments(
+            data.accepted_departments && data.accepted_departments.length > 0
+              ? data.accepted_departments
+              : data.departments || []
+          );
+        }
         setLoading(false);
       }
     }
@@ -61,6 +73,43 @@ function ApplicantDetail() {
       .eq("id", id);
     if (!error) setApplicant((a) => ({ ...a, status }));
     setUpdating(false);
+  }
+
+  function toggleDepartment(value) {
+    setDepartmentsSaved(false);
+    setSelectedDepartments((current) =>
+      current.includes(value)
+        ? current.filter((v) => v !== value)
+        : [...current, value]
+    );
+  }
+
+  async function saveDepartments() {
+    setSavingDepartments(true);
+    const { error } = await supabase
+      .from("applicants")
+      .update({ accepted_departments: selectedDepartments })
+      .eq("id", id);
+    setSavingDepartments(false);
+    if (!error) {
+      setApplicant((a) => ({ ...a, accepted_departments: selectedDepartments }));
+      setDepartmentsSaved(true);
+      setTimeout(() => setDepartmentsSaved(false), 2500);
+    }
+  }
+
+  async function deleteApplicant() {
+    const confirmed = window.confirm(
+      `هل أنت متأكد من حذف طلب "${applicant.full_name}"؟ لا يمكن التراجع عن هذا الإجراء.`
+    );
+    if (!confirmed) return;
+    setDeleting(true);
+    const { error } = await supabase.from("applicants").delete().eq("id", id);
+    if (!error) {
+      router.push("/admin/dashboard");
+    } else {
+      setDeleting(false);
+    }
   }
 
   if (loading) {
@@ -96,7 +145,21 @@ function ApplicantDetail() {
             <ArrowRight className="h-4 w-4" />
             العودة لقائمة الطلبات
           </button>
-          <StatusBadge status={applicant.status} />
+          <div className="flex items-center gap-3">
+            <StatusBadge status={applicant.status} />
+            <button
+              onClick={deleteApplicant}
+              disabled={deleting}
+              className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-rose-600 transition hover:bg-rose-50 disabled:opacity-50"
+            >
+              {deleting ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Trash2 className="h-4 w-4" />
+              )}
+              حذف الطلب
+            </button>
+          </div>
         </div>
       </header>
 
@@ -116,7 +179,7 @@ function ApplicantDetail() {
         </div>
 
         {/* Status actions */}
-        <div className="mb-8 flex flex-wrap items-center gap-2 rounded-2xl border border-ink/10 bg-white p-4 shadow-card">
+        <div className="mb-6 flex flex-wrap items-center gap-2 rounded-2xl border border-ink/10 bg-white p-4 shadow-card">
           <span className="me-2 text-sm font-medium text-ink/60">تحديث الحالة:</span>
           {STATUS_OPTIONS.map((opt) => (
             <button
@@ -132,6 +195,46 @@ function ApplicantDetail() {
               {opt.label}
             </button>
           ))}
+        </div>
+
+        {/* Branches to accept into — lets an admin narrow this down when the
+            applicant selected more branches than they should join */}
+        <div className="mb-8 rounded-2xl border border-ink/10 bg-white p-4 shadow-card">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <span className="text-sm font-medium text-ink/60">
+              الفروع التي سيتم قبوله فيها (تُستخدم في بريد القبول):
+            </span>
+            <button
+              onClick={saveDepartments}
+              disabled={savingDepartments}
+              className="flex items-center gap-1.5 rounded-lg bg-navy-800 px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-navy-700 disabled:opacity-60"
+            >
+              {savingDepartments ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : departmentsSaved ? (
+                <Check className="h-3.5 w-3.5" />
+              ) : null}
+              {departmentsSaved ? "تم الحفظ" : "حفظ"}
+            </button>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {DEPARTMENTS.map((dep) => {
+              const active = selectedDepartments.includes(dep.value);
+              return (
+                <button
+                  key={dep.value}
+                  onClick={() => toggleDepartment(dep.value)}
+                  className={`rounded-full border px-4 py-1.5 text-sm font-medium transition ${
+                    active
+                      ? "border-navy-800 bg-navy-800 text-white"
+                      : "border-ink/15 bg-white text-ink/60 hover:border-navy-800/40"
+                  }`}
+                >
+                  {dep.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2">
@@ -163,7 +266,7 @@ function ApplicantDetail() {
               <Row label="مستعد للالتزام">
                 {applicant.ready_to_commit ? "نعم" : "لا"}
               </Row>
-              <Row label="الفروع المختارة">
+              <Row label="الفروع التي تقدّم لها">
                 <div className="flex flex-wrap gap-1.5">
                   {(applicant.departments || []).map((d) => (
                     <span

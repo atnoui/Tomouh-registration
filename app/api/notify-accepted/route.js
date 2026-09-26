@@ -22,7 +22,13 @@ export async function POST(request) {
     return NextResponse.json({ error: "No applicant email in payload" }, { status: 400 });
   }
 
-  const departments = applicant.departments || [];
+  // An admin may have narrowed down which branch(es) to actually accept this
+  // person into (e.g. they applied to 3, but only fit 1). Use that choice
+  // when it's been set; otherwise fall back to what they originally applied for.
+  const departments =
+    applicant.accepted_departments && applicant.accepted_departments.length > 0
+      ? applicant.accepted_departments
+      : applicant.departments || [];
   const links = [
     ...new Set(
       departments.map((d) => DEPARTMENT_TELEGRAM_LINKS[d]).filter(Boolean)

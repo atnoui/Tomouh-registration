@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { LogOut, Search, Loader2, Inbox } from "lucide-react";
+import { LogOut, Search, Loader2, Inbox, Trash2 } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 import { departmentLabel } from "@/lib/constants";
 import AuthGuard from "@/components/AuthGuard";
@@ -23,6 +23,7 @@ function DashboardContent() {
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
+  const [deletingId, setDeletingId] = useState(null);
 
   useEffect(() => {
     let active = true;
@@ -56,6 +57,20 @@ function DashboardContent() {
   async function handleLogout() {
     await supabase.auth.signOut();
     router.replace("/admin/login");
+  }
+
+  async function handleDelete(applicant, event) {
+    event.stopPropagation();
+    const confirmed = window.confirm(
+      `هل أنت متأكد من حذف طلب "${applicant.full_name}"؟ لا يمكن التراجع عن هذا الإجراء.`
+    );
+    if (!confirmed) return;
+    setDeletingId(applicant.id);
+    const { error } = await supabase.from("applicants").delete().eq("id", applicant.id);
+    if (!error) {
+      setApplicants((current) => current.filter((a) => a.id !== applicant.id));
+    }
+    setDeletingId(null);
   }
 
   return (
@@ -137,6 +152,7 @@ function DashboardContent() {
                     <th className="px-5 py-3 font-semibold">الفروع المختارة</th>
                     <th className="px-5 py-3 font-semibold">تاريخ التقديم</th>
                     <th className="px-5 py-3 font-semibold">الحالة</th>
+                    <th className="px-5 py-3 font-semibold"></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -158,6 +174,20 @@ function DashboardContent() {
                       </td>
                       <td className="px-5 py-4">
                         <StatusBadge status={a.status} />
+                      </td>
+                      <td className="px-5 py-4">
+                        <button
+                          onClick={(e) => handleDelete(a, e)}
+                          disabled={deletingId === a.id}
+                          className="rounded-lg p-1.5 text-ink/30 transition hover:bg-rose-50 hover:text-rose-600 disabled:opacity-50"
+                          title="حذف الطلب"
+                        >
+                          {deletingId === a.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
+                        </button>
                       </td>
                     </tr>
                   ))}
